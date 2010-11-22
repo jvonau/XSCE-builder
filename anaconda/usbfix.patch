@@ -1,0 +1,121 @@
+--- image.py.orig	2010-06-28 12:12:52.000000000 -0500
++++ image.py	2010-06-30 10:57:37.000000000 -0500
+@@ -134,8 +134,16 @@
+     if methodstr.startswith("hd:"):
+         method = methodstr[3:]
+         (device, fstype, path) = method.split(":", 3)
++        log.info("image.py method's device is %s" % device)
+         device = method[0:method.index(":")]
+-    else:
++        log.info("after index %s" % device)
++        if device.startswith("LABEL="):
++            device = isys.getDeviceByToken("LABEL", device[6:])
++            log.info("JV device is now set to %s" % device)
++        elif device.startswith("UUID="):
++            device = isys.getDeviceByToken("UUID", device[5:])
++            log.info("JV device is now set to %s" % device)
++    else:        
+         return
+ 
+     # First check to see if isodir is mounted.
+@@ -153,6 +161,7 @@
+             return
+ 
+     try:
++        log.info("mounting %s on /mnt/isodir" % device)
+         isys.mount(device, "/mnt/isodir", fstype = fstype)
+     except SystemError, msg:
+         log.error("couldn't mount ISO source directory: %s" % msg)
+diff -up ./isys/isys.c.buildroot ./isys/isys.c
+--- ./isys/isys.c.buildroot	2008-10-01 20:32:11.000000000 -0500
++++ ./isys/isys.c	2009-02-01 00:34:22.000000000 -0600
+@@ -136,6 +136,8 @@ static PyObject * doSegvHandler(PyObject
+ static PyObject * doAuditDaemon(PyObject *s);
+ static PyObject * doPrefixToNetmask(PyObject *s, PyObject *args);
+ static PyObject * doGetBlkidData(PyObject * s, PyObject * args);
++static PyObject * doGetDeviceByToken(PyObject *s, PyObject *args);
++
+ 
+ static PyMethodDef isysModuleMethods[] = {
+     { "ejectcdrom", (PyCFunction) doEjectCdrom, METH_VARARGS, NULL },
+@@ -188,6 +190,7 @@ static PyMethodDef isysModuleMethods[] =
+     { "auditdaemon", (PyCFunction) doAuditDaemon, METH_NOARGS, NULL },
+     { "prefix2netmask", (PyCFunction) doPrefixToNetmask, METH_VARARGS, NULL },
+     { "getblkid", (PyCFunction) doGetBlkidData, METH_VARARGS, NULL },
++    { "getdevicebytoken", (PyCFunction) doGetDeviceByToken, METH_VARARGS, NULL },
+     { NULL, NULL, 0, NULL }
+ } ;
+ 
+@@ -231,6 +234,20 @@ static PyObject * doUnLoSetup(PyObject *
+     return Py_None;
+ }
+ 
++static PyObject *doGetDeviceByToken(PyObject *s, PyObject *args) {
++    blkid_cache cache;
++    char *token, *value, *dev;
++    if (!PyArg_ParseTuple(args, "ss", &token, &value)) return NULL;
++    blkid_get_cache(&cache, NULL);
++    dev = blkid_get_devname(cache, token, value);
++    if (dev == NULL) {
++        Py_INCREF(Py_None);
++        return Py_None;
++    } else {
++        return Py_BuildValue("s", dev);
++    }
++}
++
+ /* XXX - msw */
+ #ifndef LOOP_CHANGE_FD
+ #define LOOP_CHANGE_FD	0x4C06
+@@ -679,7 +696,7 @@ static PyObject * doWipeRaidSuperblock(P
+     /* put the size in 1k blocks */
+     size >>= 1;
+ 
+-    if (lseek64(fd, ((off64_t) 1024) * (off64_t) MD_NEW_SIZE_BLOCKS(size), SEEK_SET) < 0) {
++    if (lseek64(fd, ((off64_t) 512) * (off64_t) MD_NEW_SIZE_SECTORS(size), SEEK_SET) < 0) {
+ 	PyErr_SetFromErrno(PyExc_SystemError);
+ 	return NULL;
+     } 
+@@ -711,7 +728,7 @@ static PyObject * doGetRaidSuperblock(Py
+     /* put the size in 1k blocks */
+     size >>= 1;
+ 
+-    if (lseek64(fd, ((off64_t) 1024) * (off64_t) MD_NEW_SIZE_BLOCKS(size), SEEK_SET) < 0) {
++    if (lseek64(fd, ((off64_t) 512) * (off64_t) MD_NEW_SIZE_SECTORS(size), SEEK_SET) < 0) {
+ 	PyErr_SetFromErrno(PyExc_SystemError);
+ 	return NULL;
+     } 
+@@ -749,7 +766,7 @@ static PyObject * doGetRaidChunkSize(PyO
+     /* put the size in 1k blocks */
+     size >>= 1;
+ 
+-    if (lseek64(fd, ((off64_t) 1024) * (off64_t) MD_NEW_SIZE_BLOCKS(size), SEEK_SET) < 0) {
++    if (lseek64(fd, ((off64_t) 512) * (off64_t) MD_NEW_SIZE_SECTORS(size), SEEK_SET) < 0) {
+ 	PyErr_SetFromErrno(PyExc_SystemError);
+ 	return NULL;
+     } 
+diff -up ./isys/isys.py.buildroot ./isys/isys.py
+--- ./isys/isys.py.buildroot	2008-10-01 20:32:11.000000000 -0500
++++ ./isys/isys.py	2009-02-16 19:09:53.000000000 -0600
+@@ -757,6 +757,9 @@ def dhcpNetDevice(device):
+ 
+     return _isys.dhcpnetdevice(devname, v4, v4method, v6, v6method, klass)
+ 
++def getDeviceByToken(token, value):
++    return _isys.getdevicebytoken(token, value)
++
+ def readFSUuid(device):
+     if not os.path.exists(device):
+         device = "/dev/%s" % device
+diff -up ./loader2/hdinstall.c.buildroot ./loader2/hdinstall.c
+--- ./loader2/hdinstall.c.buildroot	2008-10-01 20:32:11.000000000 -0500
++++ ./loader2/hdinstall.c	2009-02-01 00:34:22.000000000 -0600
+@@ -539,6 +543,8 @@ int kickstartFromHD(char *kssrc) {
+     kspath = np+1;
+ 
+     logMessage(INFO, "Loading ks from device %s on path %s", ksdev, kspath);
++    logMessage(INFO, "JV Sleeping 15 seconds USB hd.c");
++    sleep(15);
+     if ((rc=getKickstartFromBlockDevice(ksdev, kspath))) {
+         if (rc == 3) {
+             startNewt();
