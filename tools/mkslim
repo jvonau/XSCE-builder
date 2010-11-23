@@ -1,0 +1,145 @@
+#!/bin/bash --norc
+# Slim down a Install iso ,to remove the extra fat in /images.
+# Copyright 2008  Jerry Vonau.
+# Jerry Vonau <jvonau@shaw.ca>
+
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; version 2 of the License.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Library General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+export PATH=/sbin:/usr/sbin:$PATH
+
+usage() {
+    echo "$0 <isopath> <outdir> <custom-path>"
+    exit 1
+}
+
+cleanup() {
+    [ -d "$CDMNT" ] && umount $CDMNT && rmdir $CDMNT && rm -rf $WORKDIR
+}
+
+exitclean() {
+    echo "Cleaning up to exit..."
+    cleanup
+    exit 1
+}
+
+checkSyslinuxVersion() {
+    if [ ! -x /usr/bin/syslinux ]; then
+	echo "You need to have syslinux installed to run this script"
+	exit 1
+    fi
+    if ! syslinux 2>&1 | grep -qe -d; then
+	SYSLINUXPATH=""
+    else
+	SYSLINUXPATH="syslinux"
+    fi
+}
+
+if [ $(id -u) != 0 ]; then 
+    echo "You need to be root to run this script"
+    exit 1
+fi
+
+if [ ! -d "$2" ]; then
+# could do pwd here if not present also
+    echo "The second parameter must be a directory!"
+    usage
+fi
+
+ISOname=$1
+ISO=$(readlink -f "$1.iso")
+outdir=$(readlink -f "$2")
+custom=$(readlink -f "$3")
+
+if [ -z "$ISO" ]; then
+    echo "Where is the iso?"
+    usage
+fi
+
+if [ ! -b "$ISO" -a ! -f "$ISO" ]; then
+    echo "ISO is not a block device"
+    usage
+fi
+
+# Grab the iso name
+CDLABEL=`/lib/udev/vol_id  "$ISO" | grep LABEL= | gawk -F= '{ print $2 }'| sed -r 's/ /-/g'| sed -r 's/"//g' | sed -r 's/6-/6/g' `  
+
+echo "extracted ISO name"
+echo $CDLABEL
+echo $ISOname
+
+# Check for tools
+checkSyslinuxVersion
+
+# Check the iso
+echo "Verifying image..."
+checkisomd5 --verbose "$ISO"
+
+if [ $? -ne 0 ]; then
+    echo "Are you SURE you want to continue?"
+    echo "Press Enter to continue or ctrl-c to abort"
+    read
+fi
+
+# FIXME: would be better if we had better mountpoints
+CDMNT=$(mktemp -d /tmp/cdtmp.XXXXXX)
+WORKDIR=$(mktemp -d /tmp/worktmp.XXXXXX)
+
+# mount the iso
+mount -o loop,ro "$ISO" $CDMNT
+
+# Copy to working dir
+## selinux doesn't like cp -a ##
+cp -P "$CDMNT"/* $WORKDIR/ 
+cp -P "$CDMNT"/.* $WORKDIR/ 
+
+# Workaround for above
+for i in images isolinux Packages repodata; do
+mkdir $WORKDIR/$i
+cp -P "$CDMNT"/"$i"/* "$WORKDIR"/"$i" 
+done
+
+# clean the tree, keep the scrapings
+mv $WORKDIR/images/boot.iso $outdir
+mv $WORKDIR/images/efidisk.img $outdir
+mv $WORKDIR/images/minstg2.img $outdir
+
+# This should copy a "tree overlay"
+# used to add/overwrite file on the new iso.
+# add your files to "custom" in the same place 
+# as on the iso. Use the same path as on the 
+# iso in your "custom". 
+# $custom/isolinux/isolinux.cfg   
+# $custom/ks.cfg
+# 
+
+if [ x"$custom" != "x" ]; then
+echo "testing copying"
+cp -a $custom/* $WORKDIR
+fi
+
+# Create the iso 
+/usr/bin/mkisofs -o $outdir/"$ISOname.iso" -v -U -R -T -f -b isolinux/isolinux.bin \
+		-c isolinux/boot.cat -no-emul-boot  -boot-load-size 4 \
+		-boot-info-table -V "$ISOname" $WORKDIR
+
+# Add an md5sum check
+/usr/bin/implantisomd5 $outdir/"$ISOname.iso"
+
+exitclean
+
+
+
+
+
