@@ -12,7 +12,7 @@ keyboard us
 auth --useshadow --enablemd5
 selinux --disabled
 #network --device eth0 --bootproto dhcp --hostname schoolserver
-firstboot --disabled
+firstboot --enabled
 
 #  We enable the firewall, even though we are going to overwrite
 #  what anaconda leaves behind
@@ -22,7 +22,7 @@ firewall --disabled
 #skipx
 
 ## Enable/Disable some services up front
-services --enabled=dhcdbd,network,sshd,haldaemon,hddtemp,smartd,anacron,crond,atd,incron,iptables,avahi-daemon,named,ntpd,aiccu,messagebus,httpd,ejabberd,xinetd,pgsql-xs --disabled=netfs,nfs,nfslock,rpcbind,rpcgssd,rpcidmapd,rpcsvcgssd,avahi-dnsconfd,radvd,ip6tables,dc_client,dc_server,squid,autofs,gpm,yum-updatesd,postgresql,dhcpd
+services --enabled=dhcdbd,network,sshd,haldaemon,hddtemp,smartd,anacron,crond,atd,incron,avahi-daemon,named,ntpd,aiccu,messagebus,httpd,ejabberd,xinetd,pgsql-xs --disabled=iptables,netfs,nfs,nfslock,rpcbind,rpcgssd,rpcidmapd,rpcsvcgssd,avahi-dnsconfd,radvd,ip6tables,dc_client,dc_server,squid,autofs,gpm,yum-updatesd,postgresql,dhcpd,exim
 
 ###
 ### disk partitioning...
@@ -51,7 +51,7 @@ services --enabled=dhcdbd,network,sshd,haldaemon,hddtemp,smartd,anacron,crond,at
 #logvol /library --fstype ext3 --name=LogVol00 --vgname=VolGroup00 --size=100 --grow --recommended
 #logvol swap --fstype swap --name=LogVol01 --vgname=VolGroup00 --maxsize=2048 --recommended
 
-%packages --nobase
+%packages 
 
 # School server core services metapackage
 @xs-server
@@ -77,7 +77,7 @@ echo "USERCTL=no" >> /etc/sysconfig/network-scripts/ifcfg-eth0
 echo "PEERDNS=yes" >> /etc/sysconfig/network-scripts/ifcfg-eth0
 echo "IPV6INIT=no" >> /etc/sysconfig/network-scripts/ifcfg-eth0
 
-# turn off firstboot for XS builds
-echo "RUN_FIRSTBOOT=NO" > /etc/sysconfig/firstboot
+# turn on firstboot for XS builds
+#echo "RUN_FIRSTBOOT=NO" > /etc/sysconfig/firstboot
 
 %end
