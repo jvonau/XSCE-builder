@@ -6,8 +6,8 @@ VER='alpha'
 BUGURL='https://github.com/jvonau/XSCE-builder/issues'
 
 # gather, createrepo, buildinstall
-echo pungi --nosource --nosplitmedia --force \
-    -c xsce-pungi --name "$NAME" \
+pungi --nosource --force \
+    -c xsce-pungi.ks --name "$NAME" \
     --ver="$VER" --bugurl="$BUGURL" \
     -G -C -B
 
@@ -15,11 +15,11 @@ echo pungi --nosource --nosplitmedia --force \
 ISOBASE=$VER/i386/os
 
 # Inject KS, overwrite isolinux.cfg
-cp olpcxs-07.ks $ISOBASE/
+cp XSCE-F20.ks $ISOBASE/
 cp isolinux.cfg $ISOBASE/isolinux/
 
 # Compile the iso
-pungi --nosource --nosplitmedia --force \
+pungi --nosource --force \
     -c olpcxs-pungi.ks --name "$NAME" \
     --ver="$VER" --bugurl="$BUGURL" \
     -I
