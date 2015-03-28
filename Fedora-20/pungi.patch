@@ -1,3 +1,4 @@
+diff -r -u /usr/lib/python2.7/site-packages/pypungi/__init__.py /usr/lib/python2.7/site-packages/pypungi/__init__.py 
 --- /usr/lib/python2.7/site-packages/pypungi/__init__.py	2013-11-01 01:18:51.000000000 +0000
 +++ /usr/lib/python2.7/site-packages/pypungi/__init__.py	2014-01-03 17:16:37.290156293 +0000
 @@ -774,7 +774,8 @@
