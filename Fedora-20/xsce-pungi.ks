@@ -7,14 +7,8 @@ repo --name=xsce-testing --baseurl=http://download.unleashkids.org/xsce/repos/xs
 
 %packages
 kernel
-kernel-PAE
 
-@base --optional
-@console-internet --optional
 @core --optional
-@network-tools --optional
-#@perl --optional
-@postgresql --optional
 
 # this is going to be the olpc-xs group
 postgresql-server
@@ -31,22 +25,21 @@ bitfrost
 #xs-release
 #xs-otp
 #pam_otp
-ds-backup-server
+#ds-backup-server
 idmgr
 usbmount
 
 # straight stuff
 ansible
-pip
+python-pip
 etckeeper
 puppet
 dnsmasq
 php
 php-cli
-php-pecl-apc
+php-pecl*
 php-pgsql
 httpd
 httpd-tools
-mod_python
 
 %end
