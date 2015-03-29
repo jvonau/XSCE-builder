@@ -23,7 +23,7 @@ cp isolinux.cfg $ISOBASE/isolinux/
 # overwrite isolinux grub.cfg
 cp grub.conf.iso $ISOBASE/isolinux/grub.conf
 # overwrite EFI grub.conf
-cp grub.conf.efi $ISOBASE/EFI/BOOT/grub.conf
+cp grub.cfg.efi $ISOBASE/EFI/BOOT/grub.cfg
 
 # Compile the iso
 pungi --nosource --force  --nodebuginfo \
