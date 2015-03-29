@@ -2,9 +2,6 @@
 ###  Kickstart file for OLPC XS School Server software
 ###
 
-### Make it interactive - so these are 'seed' values
-interactive
-
 # Provide some defaults
 lang en_US.UTF-8
 auth --useshadow --enablemd5
