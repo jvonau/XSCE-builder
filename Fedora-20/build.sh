@@ -3,13 +3,13 @@
 set -e 
 ARCH='x86_64'
 VER='F20'
-NAME='$VERXSCE'
+NAME='XSCE'
 BUGURL='https://github.com/jvonau/XSCE-builder/issues'
 
 ISOBASE=$VER/$ARCH/os
 
 # gather, createrepo, buildinstall
-pungi --nosource --force \
+pungi --nosource --force --nodebuginfo \
     -c xsce-pungi.ks --name "$NAME" \
     --ver="$VER" --bugurl="$BUGURL" \
     -G -C -B
@@ -22,7 +22,7 @@ cp XSCE-F20.ks $ISOBASE/
 cp isolinux.cfg $ISOBASE/isolinux/
 
 # Compile the iso
-pungi --nosource --force \
+pungi --nosource --force  --nodebuginfo \
     -c xsce-pungi.ks --name "$NAME" \
     --ver="$VER" --bugurl="$BUGURL" \
     -I
