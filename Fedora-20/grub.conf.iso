@@ -1,0 +1,17 @@
+#debug --graphics
+default=1
+splashimage=@SPLASHPATH@
+timeout 60
+hiddenmenu
+title Install XSCE F20
+	findiso
+	kernel @KERNELPATH@ @ROOT@ quiet
+	initrd @INITRDPATH@
+title Install XSCE F20 with kickstart
+	findiso
+	kernel @KERNELPATH@ @ROOT@ inst.ks=hd:LABEL=XSCE-F20-x86_64:/XSCE-F20.ks
+	initrd @INITRDPATH@
+title Test this media & install XSCE F20
+	findiso
+	kernel @KERNELPATH@ @ROOT@ rd.live.check quiet
+	initrd @INITRDPATH@

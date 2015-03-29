@@ -20,6 +20,10 @@ echo "contents for the ISO are at: $ISOBASE"
 cp XSCE-F20.ks $ISOBASE/
 # overwrite isolinux.cfg
 cp isolinux.cfg $ISOBASE/isolinux/
+# overwrite isolinux grub.cfg
+cp grub.conf.iso $ISOBASE/isolinux/grub.conf
+# overwrite EFI grub.conf
+cp grub.conf.efi $ISOBASE/EFI/BOOT/grub.conf
 
 # Compile the iso
 pungi --nosource --force  --nodebuginfo \
