@@ -75,6 +75,7 @@ munin
 munin-node
 mysql-connector-python
 MySQL-python
+nano
 net-tools
 NetworkManager
 nodejs
