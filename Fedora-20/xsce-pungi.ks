@@ -10,28 +10,27 @@ kernel
 
 @core --optional
 
+## 
+-ppc64-utils
+##
+
 # this is going to be the olpc-xs group
-postgresql-server
 #xs-ejabberd
-ejabberd-2.1.11
-ejabberd
 #xs-rsync
 olpc-contents
 bitfrost
-ds-backup-server
-moodle-xs
 mtd-utils
 
 ### xs-special
-#xs-config
-#xs-logos
-#xs-release
 #xs-otp
 #pam_otp
 ds-backup-server
 idmgr
 usbmount
 xs-rsync
+ejabberd-2.1.11-5.1.fc17.XSCE
+ds-backup-server
+moodle-xs
 
 # straight stuff
 acpid
@@ -74,10 +73,8 @@ mod_xsendfile
 monit
 munin
 munin-node
-mysql
 mysql-connector-python
 MySQL-python
-mysql-server
 net-tools
 NetworkManager
 nodejs
@@ -91,9 +88,7 @@ php-devel
 php-gd
 php-imap
 php-ldap
-php-mysql
 php-odbc
-php-pear
 php-pear
 php-xml
 php-xmlrpc
@@ -104,7 +99,7 @@ pyOpenSSL
 python-daemon
 python-devel
 python-gunicorn
-python-imaging
+#python-imaging
 python-passlib
 python-pip
 python-psutil
@@ -118,7 +113,6 @@ rsync
 screen
 squid
 sudo
-syslog
 tar
 unzip
 vim-minimal
