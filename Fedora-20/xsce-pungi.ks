@@ -6,10 +6,20 @@ repo --name=xsce-testing --baseurl=http://download.unleashkids.org/xsce/repos/xs
 
 
 %packages
-kernel
+kernel*
+-kernel*debug*
+-kernel-kdump*
+-kernel-tools*
+grub2
 
+@admin-tools
 @core --optional
-
+@base --optional
+@dial-up
+@console-internet --optional
+@network-tools --optional
+@postgresql --optional
+-zif
 ## 
 -ppc64-utils
 ##
