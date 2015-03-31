@@ -5,24 +5,31 @@ repo --name=xsce-extra --baseurl=http://download.unleashkids.org/xsce/repos/xsce
 repo --name=xsce-testing --baseurl=http://download.unleashkids.org/xsce/repos/xsce/testing
 
 
-%packages
-kernel*
+#### order of appearence in fedora-install-fedora.ks
+%packages --default --nobase
 -kernel*debug*
 -kernel-kdump*
 -kernel-tools*
-grub2
+kernel*
+dracut-*
 
-@admin-tools
+@standard
 @core --optional
-@base --optional
 @dial-up
-@console-internet --optional
-@network-tools --optional
-@postgresql --optional
+@hardware-support
+
+@web-server
+@php
+@python-web
+@sql-server
+
+@anaconda-tools
+-PackageKit-zif
 -zif
-## 
--ppc64-utils
-##
+
+##### /end
+## safe
+grub2
 
 # this is going to be the olpc-xs group
 #xs-ejabberd
